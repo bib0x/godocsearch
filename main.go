@@ -13,15 +13,15 @@ import (
 )
 
 type Entry struct {
-    Description string`yaml:"description",json:"description"`
-    Data        []string `yaml:"data",json:"data"`
+    Description string`yaml:"description"`
+    Data        []string `yaml:"data"`
 }
 
 type DocResource struct {
     Path        string
-    Cheats      []Entry`yaml:"cheats",json:"cheats"`
-    Links       []Entry`yaml:"links",json:"links"`
-    Glossary    []Entry`yaml:"glossary",json:glossary`
+    Cheats      []Entry`yaml:"cheats"`
+    Links       []Entry`yaml:"links"`
+    Glossary    []Entry`yaml:"glossary"`
 }
 
 type Config struct {
@@ -83,7 +83,7 @@ func (r *DocResource) PrintByName(name string, terms string, colored bool, match
     }
 }
 
-func (c *Config) PrintResults(res *DocResource) {
+func PrintResults(c *Config, res *DocResource) {
     if c.AsJson {
         if data, err := json.Marshal(res); err == nil {
             fmt.Println(string(data))
@@ -128,7 +128,6 @@ func ShowEnv(c *Config) {
         fmt.Println(p)
     }
     fmt.Println("")
-
     if os.Getenv("DOCSEARCH_COLORED") != "" {
         fmt.Println("[*] DOCSEARCH_COLORED")
         mode := "disabled"
@@ -148,40 +147,66 @@ func ShowPath(c *Config) {
     }
 }
 
+func (r *DocResource) Get(name string) []Entry {
+    if name == "cheats" {
+        return r.Cheats
+    } else if name == "links" {
+        return r.Links
+    } else if name == "glossary" {
+        return r.Glossary
+    }
+    return nil
+}
+
+func (r *DocResource) Append(name string, entry Entry) {
+   if name == "cheats" {
+        r.Cheats = append(r.Cheats, entry)
+   } else if name == "links" {
+        r.Links = append(r.Links, entry)
+   } else if name == "glossary" {
+        r.Glossary = append(r.Glossary, entry)
+   }
+}
+
+func (r *DocResource) Set(name string, entries []Entry) {
+   if name == "cheats" {
+        r.Cheats = append(r.Cheats, entries...)
+   } else if name == "links" {
+        r.Links = append(r.Links, entries...)
+   } else if name == "glossary" {
+        r.Glossary = append(r.Glossary, entries...)
+   }
+}
+
+func (r *DocResource) UpdateOnMatch(name string, terms string, from *DocResource) {
+    for _, entry := range from.Get(name) {
+        if strings.Contains(entry.Description, terms) {
+            r.Append(name, entry)
+        }
+    }
+}
+
 func ShowTopicContent(c *Config) {
     var res DocResource
-
     for _, path := range c.EnvPaths {
         topic := fmt.Sprintf("%s/%s.yaml", path, c.Topic)
         if _, err := os.Stat(topic); err == nil {
             var tmp DocResource
             if err := tmp.LoadYAML(topic); err == nil {
                 if c.Terms != "" {
-                    for _, cheat := range tmp.Cheats {
-                        if strings.Contains(cheat.Description, c.Terms) {
-                            res.Cheats = append(res.Cheats, cheat)
-                        }
-                    }
-                    for _, link := range tmp.Links {
-                        if strings.Contains(link.Description, c.Terms) {
-                            res.Links = append(res.Links, link)
-                        }
-                    }
-                    for _, glossary := range tmp.Glossary {
-                        if strings.Contains(glossary.Description, c.Terms) {
-                            res.Glossary = append(res.Glossary, glossary)
-                        }
-                    }
+                    res.UpdateOnMatch("cheats", c.Terms, &tmp)
+                    res.UpdateOnMatch("links", c.Terms, &tmp)
+                    res.UpdateOnMatch("glossary", c.Terms, &tmp)
                 } else {
-                    res.Cheats = append(res.Cheats, tmp.Cheats...)
-                    res.Links = append(res.Links, tmp.Links...)
-                    res.Glossary = append(res.Glossary, tmp.Glossary...)
+                    res.Set("cheats", tmp.Cheats)
+                    res.Set("links", tmp.Glossary)
+                    res.Set("glossary", tmp.Glossary)
                 }
                 res.Path = tmp.Path
             }
         }
     }
-    c.PrintResults(&res)
+    PrintResults(c, &res)
 }
 
 func SearchAndShowTopicContent(c *Config) {
@@ -216,28 +241,12 @@ func SearchAndShowTopicContent(c *Config) {
         }
     }
     for _, result := range results {
-        c.PrintResults(&result)
-    }
-}
-
-func Dispatcher(c *Config) {
-    if c.Inventory {
-        ListTopics(c)
-    } else if c.Env {
-        ShowEnv(c)
-    } else if c.Topic != "" {
-        if c.Path {
-            ShowPath(c)
-        } else {
-            ShowTopicContent(c)
-        }     
-    } else if c.Terms != "" {
-        SearchAndShowTopicContent(c)
+        PrintResults(c, &result)
     }
 }
 
 func main() {
-    
+    // Guard 
     if os.Getenv("DOCSEARCH_PATH") == "" {
         fmt.Printf("You need to declare DOCSEARCH_PATH environment variable.")
         os.Exit(2)
@@ -265,5 +274,19 @@ func main() {
     flag.Parse()
 
     c.EnvPaths = strings.Split(os.Getenv("DOCSEARCH_PATH"), ":")
-    Dispatcher(&c)
+
+    // Dispatcher
+    if c.Inventory {
+        ListTopics(&c)
+    } else if c.Env {
+        ShowEnv(&c)
+    } else if c.Topic != "" {
+        if c.Path {
+            ShowPath(&c)
+        } else {
+            ShowTopicContent(&c)
+        }     
+    } else if c.Terms != "" {
+        SearchAndShowTopicContent(&c)
+    }
 }
