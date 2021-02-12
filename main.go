@@ -52,20 +52,7 @@ func (r *DocResource) LoadYAML(path string) error {
 }
 
 func (r *DocResource) PrintByName(name string, terms string, colored bool, matched bool) {
-    var entries []Entry
-
-    switch name {
-        case "cheats":
-            entries = r.Cheats
-        case "links":
-            entries = r.Links
-        case "glossary":
-            entries = r.Glossary
-        default:
-            entries = r.Cheats
-    }
-
-    for _, entry := range entries {
+    for _, entry := range r.Get(name) {
         description := entry.Description
         if matched {
             cterms := fmt.Sprintf("\033[31;1m%s\033[0m", terms)
@@ -81,6 +68,49 @@ func (r *DocResource) PrintByName(name string, terms string, colored bool, match
         }
         fmt.Println("")
     }
+}
+
+func (r *DocResource) Get(name string) []Entry {
+    if name == "cheats" {
+        return r.Cheats
+    } else if name == "links" {
+        return r.Links
+    } else if name == "glossary" {
+        return r.Glossary
+    }
+    return nil
+}
+
+func (r *DocResource) Append(name string, entry Entry) {
+   if name == "cheats" {
+        r.Cheats = append(r.Cheats, entry)
+   } else if name == "links" {
+        r.Links = append(r.Links, entry)
+   } else if name == "glossary" {
+        r.Glossary = append(r.Glossary, entry)
+   }
+}
+
+func (r *DocResource) Set(name string, entries []Entry) {
+   if name == "cheats" {
+        r.Cheats = append(r.Cheats, entries...)
+   } else if name == "links" {
+        r.Links = append(r.Links, entries...)
+   } else if name == "glossary" {
+        r.Glossary = append(r.Glossary, entries...)
+   }
+}
+
+func (r *DocResource) UpdateOnMatch(name string, terms string, from *DocResource) {
+    for _, entry := range from.Get(name) {
+        if strings.Contains(entry.Description, terms) {
+            r.Append(name, entry)
+        }
+    }
+}
+
+func (r *DocResource) HasEntries() bool {
+    return len(r.Cheats) > 0 || len(r.Links) > 0 || len(r.Glossary) > 0
 }
 
 func PrintResults(c *Config, res *DocResource) {
@@ -147,45 +177,6 @@ func ShowPath(c *Config) {
     }
 }
 
-func (r *DocResource) Get(name string) []Entry {
-    if name == "cheats" {
-        return r.Cheats
-    } else if name == "links" {
-        return r.Links
-    } else if name == "glossary" {
-        return r.Glossary
-    }
-    return nil
-}
-
-func (r *DocResource) Append(name string, entry Entry) {
-   if name == "cheats" {
-        r.Cheats = append(r.Cheats, entry)
-   } else if name == "links" {
-        r.Links = append(r.Links, entry)
-   } else if name == "glossary" {
-        r.Glossary = append(r.Glossary, entry)
-   }
-}
-
-func (r *DocResource) Set(name string, entries []Entry) {
-   if name == "cheats" {
-        r.Cheats = append(r.Cheats, entries...)
-   } else if name == "links" {
-        r.Links = append(r.Links, entries...)
-   } else if name == "glossary" {
-        r.Glossary = append(r.Glossary, entries...)
-   }
-}
-
-func (r *DocResource) UpdateOnMatch(name string, terms string, from *DocResource) {
-    for _, entry := range from.Get(name) {
-        if strings.Contains(entry.Description, terms) {
-            r.Append(name, entry)
-        }
-    }
-}
-
 func ShowTopicContent(c *Config) {
     var res DocResource
     for _, path := range c.EnvPaths {
@@ -218,22 +209,10 @@ func SearchAndShowTopicContent(c *Config) {
             var tmp DocResource
             var res DocResource
              if err := tmp.LoadYAML(topic); err == nil {
-                 for _, cheat := range tmp.Cheats {
-                     if strings.Contains(cheat.Description, c.Terms) {
-                         res.Cheats = append(res.Cheats, cheat)
-                     }
-                 }
-                 for _, link := range tmp.Links {
-                     if strings.Contains(link.Description, c.Terms) {
-                         res.Links = append(res.Links, link)
-                     }
-                 }
-                 for _, glossary := range tmp.Glossary {
-                     if strings.Contains(glossary.Description, c.Terms) {
-                         res.Glossary = append(res.Glossary, glossary)
-                     }
-                 }
-                 if len(res.Cheats) > 0 || len(res.Links) > 0 || len(res.Glossary) > 0 {
+                 res.UpdateOnMatch("cheats", c.Terms, &tmp)
+                 res.UpdateOnMatch("links", c.Terms, &tmp)
+                 res.UpdateOnMatch("glossary", c.Terms, &tmp)
+                 if res.HasEntries() {
                      res.Path = topic
                      results = append(results, res)
                  }
