@@ -1,0 +1,16 @@
+{
+    "cheats": [{
+
+        "description": "Testing some stuff",
+        "data": [
+            "this is a test",
+            "this is another test"
+        ]
+    }],
+    "links": [{
+        "description": "I am still testing...",
+        "data": [
+            "some data"
+        ]
+    }]
+}

@@ -1,0 +1,105 @@
+cheats:
+    -
+        description: "create a new REMOTE branch from LOCAL branch"
+        data:
+            - git push -u origin <BRANCH_NAME>
+    -
+        description: "create a new LOCAL branch from REMOTE branch"
+        data:
+            - git checkout -b <BRANCH_NAME> [<start_point>]
+            - git checkout <path/of/remote>
+    -
+        description: "delete local branch"
+        data:
+            - git branch -d <BRANCH_NAME>
+    -
+        description: "delete remote branch"
+        data:
+            - git push origin :<BRANCH_NAME>
+    -
+        description: "rename local branch"
+        data:
+            - git branch -m <OLD> <NEW>
+    -
+        description: "view/show a specific commit message"
+        data:
+            - git show 
+            - git show <COMMIT-ID>
+    -
+        description: "view/show branch and file changes"
+        data:
+            - git status -s -b
+    -
+        description: "pull submodules"
+        data:
+            - git submodule update --recursive
+    -
+        description: "view submodules status"
+        data:
+            - git submodule status
+    -
+        description: "revert a specific commit"
+        data:
+            - git revert <COMMIT-ID>
+            - git push
+    -
+        description: "amend/edit last commit message"
+        data:
+            - git commit --amend
+    -
+        description: "clone repository with submodule"
+        data:
+            - git clone --recursive <uri>
+    -
+        description: "clone repository with submodule on existing repository"
+        data:
+            - git clone <uri>
+            - cd <repository>
+            - git submodule update --init --recursive
+    -
+        description: "set local configuration"
+        data:
+            - git config --local user.name "myname"
+            - git config --local user.email "myemail@mydomain.tld"
+    -
+        description: "show config"
+        data:
+            - git config -l
+            - git config --list
+    -
+        description: "revert last local commit"
+        data:
+            - git reset --hard HEAD~1
+    -
+        description: "search for terms/string in commit message history"
+        data:
+            - git log --all --grep='<message>'
+            - git log --grep='<message>'
+            - git log --author="<username>"
+links:
+    -
+        description: "amend/edit commit messages"
+        data:
+            - "https://help.github.com/en/github/committing-changes-to-your-project/changing-a-commit-message"
+    -
+        description: "rebase branch"
+        data:
+            - "https://stackoverflow.com/questions/7929369/how-to-rebase-local-branch-with-remote-master#7929499"
+    -
+        description: "emoji in git commit"
+        data:
+            - "https://gitmoji.carloscuesta.me/"
+    -
+        description: "cheatsheet about useful git command"
+        data:
+            - "https://dev.to/maxpou/git-cheat-sheet-advanced-3a17"
+    -
+        description: "one repository for gitlab and github at the same time"
+        data:
+            - "https://steveperkins.com/migrating-projects-from-github-to-gitlab/"
+
+glossary:
+    -
+        description: "rebase"
+        data:
+            - "Rebasing is the process of moving or combining a sequence of commits to a new base commit"
