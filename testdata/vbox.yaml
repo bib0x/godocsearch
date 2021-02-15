@@ -1,0 +1,38 @@
+cheats:
+    -
+        description: "convert vmdk to vdi"
+        data:
+            - VBoxManage clonehd --format VDI file.vmdk /full/path/file.vdi
+    -
+        description: "get vm ip from host"
+        data:
+            - "VBoxManage guestproperty get __VM_NAME__ '/VirtualBox/GuestInfo/Net/0/V4/IP' | sed 's/Value: //g'"
+    -
+        description: "install guest additions manually"
+        data:
+            - scp /usr/share/virtualbox/VBoxGuestAdditions.iso root@vm:/tmp/
+            - ssh root@vm
+            - mount -o loop /tmp/VBoxGuestAdditions.iso /mnt/
+            - cp /tmp/VBoxLinuxAdditions.run /tmp && chmod u+x /tmp/VBoxLinuxAdditions.run
+            - /tmp/VBoxLinuxAdditions.run
+            - reboot
+    -
+        description: "list available VMs"
+        data:
+            - vboxmanage list vms
+    -
+        description: "list running VMs"
+        data:
+            - vboxmanage list runningvms
+    -
+        description: "stop VM"
+        data:
+            - vboxmanage controlvm <vm> acpipowerbutton
+    -
+        description: "start VM"
+        data:
+            - vboxmanage startvm <vm>
+    -
+        description: "list VM snapshots"
+        data:
+            - vboxmanage snapshot <vm> list
