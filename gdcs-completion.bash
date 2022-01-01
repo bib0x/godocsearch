@@ -34,3 +34,4 @@ function __gdcs_completions() {
 
 complete -F __gdcs_completions godocsearch
 complete -F __gdcs_completions gdcs
+complete -F __gdcs_completions docsearch
