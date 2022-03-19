@@ -84,3 +84,13 @@ Usage of godocsearch:
   -t string
     	Search on a specific topic
 ```
+
+## Bonus
+
+You can validate that your resource files as well formatted, using the script `check.cue` such as:
+
+```
+$ nix-shell -p cue
+$ cue vet check.cue $HOME/perso/git/resources/git.yaml
+# if no error, your are good
+```
